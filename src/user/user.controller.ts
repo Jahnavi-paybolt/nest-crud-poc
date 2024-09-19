@@ -1,14 +1,14 @@
-import { Body, Request, Controller, Param, Post, Get, UnauthorizedException, Patch, Delete } from "@nestjs/common";
+import { Body, Request, Controller, Param, Post, Get, UnauthorizedException, Patch, Delete, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
-import {JwtService} from "@nestjs/jwt";
+import { AuthGuard } from "src/guards/auth.guard";
 // import { AuthService } from "src/auth/auth.service";
 
 //global prefix 'user'
-@Controller('user')
+// @UseGuards(AuthGuard)
+@Controller('users')
 export class UserController {
     constructor (
         private readonly userService: UserService,
-        private readonly jwtService: JwtService,
         // private readonly authService: AuthService
     ){}
 
@@ -24,73 +24,28 @@ export class UserController {
     //     return this.authService.login(email, password);
     // }
 
-    @Get(':id')
-    async getUserById(@Param('id') id: number, @Request() req){
-        const token = req.headers.authorization.split(' ')[1];
-        if(!token){
-            throw new UnauthorizedException('No token provided');
-        }
-
-        try {
-            const payLoad = this.jwtService.verify(token);
-            if(payLoad){
-                return this.userService.findOne(id);
-            }
-        } catch(e){
-            throw new UnauthorizedException('Invalid token');
-        }
-    }
-
     @Get()
-    async GetAllUsers(@Request() req){
-        const token = req.headers.authorization.split(' ')[1];
-        if(!token){
-            throw new UnauthorizedException('No token provided');
-        }
-
-        try {
-            const payLoad = this.jwtService.verify(token);
-            if(payLoad){
-                return this.userService.findAll();
-            }
-        } catch(e){
-            throw new UnauthorizedException('Invalid token');
-        }
+    async GetAllUsers(){
+        return this.userService.findAll();
 
     }
 
+    @UseGuards(AuthGuard)
+    @Get(":id")
+    async getUserById(@Param("id") id: number) {
+        return this.userService.findOne(id)
+    }
+
+    
+    @UseGuards(AuthGuard)
     @Patch(':id')
-    async updateUser(@Param('id') id: number, @Body() body, @Request() req){
-        const token = req.headers.authorization.split(' ')[1];
-        if(!token){
-            throw new UnauthorizedException('No token provided');
-        }
-
-        try {
-            const payLoad = this.jwtService.verify(token);
-            if(payLoad){
-                return this.userService.update(id, body);
-            }
-        } catch(e){
-            throw new UnauthorizedException('Invalid token');
-        }
+    async updateUser(@Param('id') id: number, @Body() body){
+        return this.userService.update(id, body);
     }
 
-
+    @UseGuards(AuthGuard)
     @Delete(':id')
     async deleteUser(@Param('id') id: number, @Request() req){
-        const token = req.headers.authorization.split(' ')[1];
-        if(!token){
-            throw new UnauthorizedException('No token provided');
-        }
-
-        try {
-            const payLoad = this.jwtService.verify(token);
-            if(payLoad){
-                return this.userService.delete(id);
-            }
-        } catch(e){
-            throw new UnauthorizedException('Invalid token');
-        }
+        return this.userService.delete(id);
     }
 }
