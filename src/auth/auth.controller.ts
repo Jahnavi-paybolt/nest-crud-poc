@@ -25,7 +25,7 @@ export class AuthController {
     @Post('signin')
     async signin(@Body() body: UserDto, @Res() res: Response){
         // const {email, password} = user;
-        const {User, access_token} = await this.authService.login(body);
+        const {user, access_token} = await this.authService.login(body);
 
         res.cookie('Bearer', access_token, {
             httpOnly: true,
@@ -35,7 +35,7 @@ export class AuthController {
 
         res.status(HttpStatus.OK).json({
             message: 'User logged in successfully',
-            User,
+            user,
         });
     }
 }
